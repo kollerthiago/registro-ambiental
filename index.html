@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Protótipo acadêmico para registrar problemas ambientais do bairro.">
+  <title>Registro Ambiental — Projeto Integrador II</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
+  <style>
+    :root { --verde: #206148; --fundo: #f4f7f5; }
+    body { background: var(--fundo); color: #26372d; }
+    .cabecalho { background: var(--verde); color: white; padding: 2.3rem 0; }
+    .painel { background: white; border: 1px solid #e2e8e3; border-radius: 14px; padding: 1.4rem; box-shadow: 0 4px 18px #1735230c; }
+    .btn-primary { --bs-btn-bg: var(--verde); --bs-btn-border-color: var(--verde); --bs-btn-hover-bg: #15462f; --bs-btn-hover-border-color: #15462f; }
+    .registro { border: 1px solid #dfe7df; border-radius: 9px; padding: 1rem; margin-top: 0.8rem; background: #f9fbfa; }
+    /* Estilos básicos de reserva: a página continua legível sem conexão com o CDN. */
+    * { box-sizing: border-box; }
+    .container { max-width: 1140px; margin: 0 auto; padding-left: 20px; padding-right: 20px; }
+    .row { display: flex; flex-wrap: wrap; }
+    .g-4 { gap: 24px; }
+    .col-lg-5 { flex: 0 1 calc(42% - 12px); }
+    .col-lg-7 { flex: 1 1 calc(58% - 12px); }
+    .py-4 { padding-top: 28px; padding-bottom: 28px; }
+    .mb-0 { margin-bottom: 0; } .mb-2 { margin-bottom: 8px; }
+    .mb-3 { margin-bottom: 16px; } .mt-2 { margin-top: 8px; }
+    .h2 { font-size: 31px; font-weight: 650; }
+    .h5 { font-size: 22px; font-weight: 650; }
+    .h6 { font-size: 17px; font-weight: 650; }
+    .small { font-size: 13px; }
+    .text-secondary { color: #65746c !important; }
+    .text-white-50 { color: #d2e5da !important; }
+    .form-label { display: inline-block; margin-bottom: 7px; }
+    .fw-semibold { font-weight: 650; }
+    .form-control, .form-select { display: block; width: 100%; padding: 11px 12px; border: 1px solid #bdccc2; border-radius: 8px; font: inherit; background: #fff; color: #24382d; }
+    .btn { display:inline-block; cursor: pointer; padding: 9px 14px; font:inherit; border-radius: 8px; border:1px solid transparent; }
+    .btn-primary { color:white; background: var(--verde); border-color:var(--verde); }
+    .btn-outline-danger { color:#b03434; border-color: #dfb7b7; background: white; }
+    .btn-sm { font-size: 13px; padding: 6px 10px; }
+    .w-100 { width: 100%; }
+    .badge { display:inline-block; border-radius: 20px; padding: 6px 10px; font-size: 12px; }
+    .text-bg-light { background: #e8eee9; }
+    .d-flex { display: flex; } .justify-content-between { justify-content:space-between; } .align-items-center { align-items:center; } .gap-2 {gap:8px;}
+    @media (max-width: 800px) { .col-lg-5,.col-lg-7 { flex: 1 1 100%; } }
+  </style>
+</head>
+<body>
+  <header class="cabecalho">
+    <div class="container">
+      <p class="small mb-2 text-white-50">Projeto Integrador de Tecnologia da Informação II</p>
+      <h1 class="h2 mb-2">Registro Ambiental</h1>
+      <p class="mb-0">Um jeito simples de organizar problemas encontrados no bairro.</p>
+    </div>
+  </header>
+  <main class="container py-4">
+    <div class="row g-4">
+      <section class="col-lg-5">
+        <div class="painel">
+          <h2 class="h5">Novo registro</h2>
+          <p class="text-secondary small">Cadastre um problema ambiental da sua região.</p>
+          <form id="formulario">
+            <label for="tipo" class="form-label fw-semibold">Tipo de problema</label>
+            <select id="tipo" class="form-select mb-3" required>
+              <option value="">Selecione...</option>
+              <option>Lixo acumulado</option>
+              <option>Descarte irregular</option>
+              <option>Entulho na rua</option>
+              <option>Outro</option>
+            </select>
+            <label for="local" class="form-label fw-semibold">Local / referência</label>
+            <input id="local" type="text" class="form-control mb-3" maxlength="100" placeholder="Ex.: Rua das Flores, perto da praça" required>
+            <label for="descricao" class="form-label fw-semibold">Descrição do problema</label>
+            <textarea id="descricao" class="form-control mb-3" rows="4" maxlength="400" placeholder="Descreva brevemente a situação" required></textarea>
+            <button class="btn btn-primary w-100" type="submit">Cadastrar problema</button>
+          </form>
+        </div>
+      </section>
+      <section class="col-lg-7">
+        <div class="painel">
+          <div class="d-flex justify-content-between align-items-center gap-2">
+            <h2 class="h5 mb-0">Problemas registrados</h2>
+            <span class="badge text-bg-light" id="contador">0 registros</span>
+          </div>
+          <p class="text-secondary small mt-2">Os dados ficam guardados neste navegador, sem envio para órgãos públicos.</p>
+          <div id="lista" aria-live="polite"></div>
+        </div>
+      </section>
+    </div>
+  </main>
+  <script>
+    const chave = 'registroAmbientalUfmsII';
+    const formulario = document.querySelector('#formulario');
+    const lista = document.querySelector('#lista');
+    const contador = document.querySelector('#contador');
+    let registros = [];
+    try { registros = JSON.parse(localStorage.getItem(chave) || '[]'); } catch (_) { registros = []; }
+    if (!Array.isArray(registros)) registros = [];
+    function guardar() {
+      try { localStorage.setItem(chave, JSON.stringify(registros)); }
+      catch (_) { alert('O navegador impediu salvar os registros.'); }
+    }
+    function texto(tag, classe, conteudo) {
+      const el = document.createElement(tag);
+      el.className = classe;
+      el.textContent = conteudo;
+      return el;
+    }
+    function atualizar() {
+      lista.replaceChildren();
+      contador.textContent = `${registros.length} registro${registros.length === 1 ? '' : 's'}`;
+      if (registros.length === 0) {
+        lista.append(texto('p', 'text-secondary mb-0', 'Ainda não existem registros cadastrados.'));
+        return;
+      }
+      for (const r of registros) {
+        const item = document.createElement('article');
+        item.className = 'registro';
+        item.append(texto('h3', 'h6 mb-1', r.tipo));
+        item.append(texto('p', 'small text-secondary mb-2', `${r.local} • ${r.data}`));
+        item.append(texto('p', 'mb-2', r.descricao));
+        const botao = texto('button', 'btn btn-outline-danger btn-sm', 'Excluir');
+        botao.type = 'button';
+        botao.addEventListener('click', () => {
+          registros = registros.filter(x => x.id !== r.id);
+          guardar(); atualizar();
+        });
+        item.append(botao);
+        lista.append(item);
+      }
+    }
+    formulario.addEventListener('submit', event => {
+      event.preventDefault();
+      const tipo = document.querySelector('#tipo').value;
+      const local = document.querySelector('#local').value.trim();
+      const descricao = document.querySelector('#descricao').value.trim();
+      if (!tipo || !local || !descricao) return;
+      registros.unshift({id: Date.now().toString(36)+Math.random().toString(36).slice(2), tipo, local, descricao, data: new Date().toLocaleDateString('pt-BR') });
+      guardar(); atualizar(); formulario.reset();
+    });
+    atualizar();
+  </script>
+</body>
+</html>
